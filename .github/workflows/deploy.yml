@@ -1,0 +1,20 @@
+name: Deploy API
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - run: |
+          cd /opt/apps/project-api
+          git pull
+
+          cd /opt/apps/deployment
+          docker compose up -d --build backend
+
+          docker compose exec -T backend npx prisma migrate deploy
