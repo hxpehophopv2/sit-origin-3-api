@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
@@ -16,19 +17,10 @@ enum UserRole {
   STAFF
 }
 
-enum UserGroup {
-  G1
-  G2
-  G3
-  G4
-  G5
-  G6
-  G7
-  G8
-  G9
-  G10
-  ADMIN
-  STAFF
+enum UserMajor {
+  IT
+  CS
+  DSI
 }
 
 enum ActionStatus {
@@ -50,27 +42,39 @@ enum AuditAction {
 // MODELS (TABLES)
 // -----------------------------------------------------------------------------
 
+model UserGroup {
+  id    Int       @id @default(autoincrement())
+  name  String    @unique @db.VarChar(50)
+  
+  // --- Relations ---
+  users AppUser[]
+
+  @@map("user_groups")
+}
+
 model AppUser {
-  id        Int       @id @default(autoincrement())
-  email     String    @unique @db.VarChar(255)
-  password  String    @db.VarChar(255)
-  phoneNo   String?   @map("phone_no") @db.VarChar(20)
-  firstname String    @db.VarChar(255)
-  lastname  String    @db.VarChar(255)
-  nickname  String    @db.VarChar(255)
-  userCode  String    @unique @map("user_code") @db.VarChar(4)
-  role      UserRole  @default(FRESHY)
-  group     UserGroup
-  points    Int       @default(0)
-  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamp(0)
+  id        Int        @id @default(autoincrement())
+  email     String     @unique @db.VarChar(255)
+  altEmail  String?    @map("alt_email") @db.VarChar(255)
+  password  String     @db.VarChar(255)
+  phoneNo   String?    @map("phone_no") @db.VarChar(20)
+  studentId String?    @unique @map("student_id") @db.VarChar(20)
+  firstname String     @db.VarChar(255)
+  lastname  String     @db.VarChar(255)
+  nickname  String     @db.VarChar(255)
+  userCode  String     @unique @map("user_code") @db.VarChar(4)
+  role      UserRole   @default(FRESHY)
+  major     UserMajor
+  groupId   Int        @map("group_id")
+  points    Int        @default(0)
+  createdAt DateTime   @default(now()) @map("created_at") @db.Timestamp(0)
 
   // --- Relations ---
+  group          UserGroup          @relation(fields: [groupId], references: [id])
   givenPoints    PointTransaction[] @relation("GiverRelation")
   receivedPoints PointTransaction[] @relation("ReceiverRelation")
-  
   auditsAsActor  AuditLog[]         @relation("ActorRelation")
   auditsAsTarget AuditLog[]         @relation("TargetRelation")
-  
   sessions       UserSession[]
 
   @@map("app_user")
